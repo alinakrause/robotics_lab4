@@ -22,12 +22,17 @@ def get_image(ros_img):
 
 	
 if __name__ == '__main__':
+	
+	rectangle = np.zeros((720,1280),dtype = "uint8")
+	cv2.rectangle(rectangle,(25,25),(715,1255),255,-1)
+
+
 	# define the node and subcribers and publishers
-	rospy.init_node('flip_image', anonymous = True)
+	rospy.init_node('detect_ball', anonymous = True)
 	# define a subscriber to ream images
 	img_sub = rospy.Subscriber("/camera/color/image_raw", Image, get_image) 
 	# define a publisher to publish images
-	img_pub = rospy.Publisher('/flipped_image', Image, queue_size = 1)
+	img_pub = rospy.Publisher('/ball_2D', Image, queue_size = 1)
 	
 	# set the loop frequency
 	rate = rospy.Rate(10)
@@ -35,21 +40,22 @@ if __name__ == '__main__':
 	while not rospy.is_shutdown():
 		# make sure we process if the camera has started streaming images
 		if img_received:
-			# flip the image up			
-			flipped_img = cv2.flip(rgb_img, 0)
-			
-			
-			
-			
-			# define a lower range for the RGB values
-			lower_yellow_rgb = np.array([100,100,0])
-			# define an upper range for the RGB values
-			upper_yellow_rgb = np.array([255,255,100])
-			# figure out which pixels are within the lower and upper ranges
-			yellow_mask = cv2.inRange(flipped_img, lower_yellow_rgb, upper_yellow_rgb)
+	
+			# convert the image to the HSV space
+			hsv = cv2.cvtColor(rgb_img, cv2.COLOR_RGB2HSV)
+			# define the upper and lower ranges
+			lower_yellow_hsv = np.array([25,100,1])
+			upper_yellow_hsv = np.array([60,255,255])
+			# filter the image 
+			yellow_mask = cv2.inRange(hsv, lower_yellow_hsv, upper_yellow_hsv)
+			bitwiseAnd = cv2.bitwise_and(rectangle, yellow_mask)
+
+
+	
+
 			
 			# convert it to ros msg and publish it
-			img_msg = CvBridge().cv2_to_imgmsg(yellow_mask, encoding="mono8")
+			img_msg = CvBridge().cv2_to_imgmsg(bitwiseAnd, encoding="mono8")
 			# publish the image
 			img_pub.publish(img_msg)
 		# pause until the next iteration			
