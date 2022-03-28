@@ -25,7 +25,7 @@ if __name__ == '__main__':
 	
 	#define  region of interest
 	rectangle = np.zeros((720,1280),dtype = "uint8")
-	cv2.rectangle(rectangle,(40,40),(715,1255),255,-1)
+	cv2.rectangle(rectangle,(110,110),(715,1255),255,-1)
 
 
 	# define the node and subcribers and publishers
